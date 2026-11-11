@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: dbp-t2-server
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:employee_project_management}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:dbp}
+    password: ${DB_PASSWORD:dbp1234}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # 스키마의 기준은 db/init/01_schema.sql. JPA는 매핑이 스키마와 맞는지 검사만 한다.
+      ddl-auto: validate
+      naming:
+        # 기본 전략은 테이블명을 소문자로 바꿔 리눅스 MySQL에서 EMPLOYEE ≠ employee 오류가 난다.
+        # @Table/@Column에 적은 이름을 그대로 쓰도록 고정한다.
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Seoul
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    org.hibernate.SQL: debug

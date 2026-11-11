@@ -1,0 +1,49 @@
+# 서버 배포용: Spring + MySQL을 함께 띄운다.
+# - MySQL은 외부·호스트에 포트를 열지 않는다(컨테이너 내부망에서 app만 접근).
+# - app은 호스트의 127.0.0.1:${APP_PORT}에만 열고, 앞단 리버스 프록시(80/443)가 HTTPS로 받아 넘긴다.
+# 실행: cd deploy && cp .env.prod.example .env && (비밀번호 수정) && docker compose -f docker-compose.prod.yml up -d --build
+name: dbp-t2
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?deploy/.env에 DB_ROOT_PASSWORD를 설정하세요}
+      MYSQL_DATABASE: ${DB_NAME:-employee_project_management}
+      MYSQL_USER: ${DB_USERNAME:-dbp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?deploy/.env에 DB_PASSWORD를 설정하세요}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --performance-schema=OFF
+    volumes:
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 640m
+
+  app:
+    build:
+      context: ..
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-employee_project_management}
+      DB_USERNAME: ${DB_USERNAME:-dbp}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:${APP_PORT:-8081}:8080"
+    mem_limit: 768m
+
+volumes:
+  mysql-data:

@@ -1,0 +1,9 @@
+.git
+.gradle
+.idea
+build
+deploy
+db
+.env
+**/.env
+*.pem

@@ -1,0 +1,30 @@
+# 로컬 개발용 MySQL
+# 최초 기동 시(볼륨이 비어 있을 때만) db/init의 01_schema.sql → 02_seed.sql 순서로 자동 적재된다.
+# DB를 초기 상태로 되돌리려면: docker compose down -v && docker compose up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: dbp-t2-mysql
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root1234}
+      MYSQL_DATABASE: ${DB_NAME:-employee_project_management}
+      MYSQL_USER: ${DB_USERNAME:-dbp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-dbp1234}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-root1234}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  mysql-data:
