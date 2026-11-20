@@ -10,13 +10,15 @@
 필요한 것: JDK 21, Docker Desktop
 
 ```bash
-cp .env.example .env          # 포트·비밀번호를 바꾸려면 여기서
+cp .env.example .env          # 포트·비밀번호, RESIDENT_NO_KEY·JWT_SECRET 채우기
 docker compose up -d          # MySQL 기동 + db/init 스키마·시드 자동 적재 (최초 1회)
 ./gradlew test                # 매핑 검증 테스트 (MySQL이 떠 있어야 함)
 ./gradlew bootRun             # http://localhost:8080/actuator/health
 ```
 
-DB를 시드 상태로 되돌리기: `docker compose down -v && docker compose up -d`
+DB를 시드 상태로 되돌리기: `scripts/reset-db.sh` (서버를 띄운 채로 테이블만 다시 만든다) 또는 `docker compose down -v && docker compose up -d`
+
+시드 비밀번호는 모두 `demo1234`. 주민번호 암호문은 `RESIDENT_NO_KEY`로 만들어져 있어 키가 다르면 마스킹 값이 `******-*******`로 보인다. 키를 바꾸면 `./gradlew seedSecrets`로 시드를 다시 만든다(db/CHANGELOG.md).
 
 > 로컬에 MySQL이 이미 3306을 쓰고 있으면 `.env`의 `DB_PORT`를 3307 등으로 바꾼다.
 

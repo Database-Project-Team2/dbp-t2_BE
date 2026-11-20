@@ -41,6 +41,8 @@ services:
       DB_NAME: ${DB_NAME:-employee_project_management}
       DB_USERNAME: ${DB_USERNAME:-dbp}
       DB_PASSWORD: ${DB_PASSWORD}
+      RESIDENT_NO_KEY: ${RESIDENT_NO_KEY:?deploy/.env에 RESIDENT_NO_KEY를 설정하세요}
+      JWT_SECRET: ${JWT_SECRET:?deploy/.env에 JWT_SECRET을 설정하세요}
     ports:
       - "127.0.0.1:${APP_PORT:-8081}:8080"
     mem_limit: 768m
