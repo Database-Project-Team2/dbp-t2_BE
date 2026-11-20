@@ -55,4 +55,41 @@ public class Project {
 
     @Column(name = "evaluation_reported_date")
     private LocalDate evaluationReportedDate;
+
+    /** 등록: 실제 착수한 프로젝트만. 검증은 서비스에서 끝낸 뒤 호출한다. */
+    public static Project create(String name, Client client, LocalDate actualStartDate, LocalDate plannedEndDate) {
+        Project p = new Project();
+        p.name = name;
+        p.client = client;
+        p.actualStartDate = actualStartDate;
+        p.plannedEndDate = plannedEndDate;
+        return p;
+    }
+
+    public void update(String name, Client client, LocalDate actualStartDate, LocalDate plannedEndDate) {
+        this.name = name;
+        this.client = client;
+        this.actualStartDate = actualStartDate;
+        this.plannedEndDate = plannedEndDate;
+    }
+
+    public void close(LocalDate actualEndDate) {
+        this.actualEndDate = actualEndDate;
+    }
+
+    public void requestEvaluation(LocalDate date) {
+        this.evaluationRequestedDate = date;
+    }
+
+    public void receiveEvaluation(LocalDate date) {
+        this.evaluationReceivedDate = date;
+    }
+
+    public void reportEvaluation(LocalDate date) {
+        this.evaluationReportedDate = date;
+    }
+
+    public boolean isClosed() {
+        return actualEndDate != null;
+    }
 }

@@ -39,6 +39,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/check-login-id").permitAll()
                         .requestMatchers("/actuator/health", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // 경영진 전용 API는 본문 검사보다 먼저 막는다(권한 없는 사용자에게 400 대신 403).
+                        .requestMatchers(HttpMethod.GET, "/api/v1/employees", "/api/v1/assignments", "/api/v1/assignments/export.csv",
+                                "/api/v1/projects/*/client-options", "/api/v1/projects/*/member-candidates").hasRole("MANAGEMENT")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects", "/api/v1/projects/*/close", "/api/v1/projects/*/members",
+                                "/api/v1/clients").hasRole("MANAGEMENT")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/projects/*", "/api/v1/members/*/assignment",
+                                "/api/v1/clients/*").hasRole("MANAGEMENT")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/members/*").hasRole("MANAGEMENT")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

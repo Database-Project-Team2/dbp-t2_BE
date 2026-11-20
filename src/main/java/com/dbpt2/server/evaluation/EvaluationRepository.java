@@ -13,6 +13,8 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Integer>
     /** 고객평가 중복 검사용 — DB UNIQUE로는 막히지 않는다. */
     boolean existsByTargetIdAndType(Integer targetMemberId, EvaluationType type);
 
+    boolean existsByTargetIdOrEvaluatorIdOrRegisteredById(Integer targetId, Integer evaluatorId, Integer registeredById);
+
     boolean existsByTargetIdAndTypeAndEvaluatorId(Integer targetMemberId, EvaluationType type, Integer evaluatorMemberId);
 
     /** [집계] 프로젝트별 고객평가를 받은 실제 참여자 수(고객평가 회수 진행률). */

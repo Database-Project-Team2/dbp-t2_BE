@@ -55,4 +55,33 @@ public class ProjectMember {
 
     @Column(name = "assignment_end_date")
     private LocalDate assignmentEndDate;
+
+    public static ProjectMember create(Project project, Employee employee, ProjectRole role,
+                                       LocalDate assignmentStartDate, LocalDate assignmentEndDate) {
+        ProjectMember m = new ProjectMember();
+        m.project = project;
+        m.employee = employee;
+        m.role = role;
+        m.assignmentStartDate = assignmentStartDate;
+        m.assignmentEndDate = assignmentEndDate;
+        return m;
+    }
+
+    public void changeAssignment(LocalDate assignmentStartDate, LocalDate assignmentEndDate) {
+        this.assignmentStartDate = assignmentStartDate;
+        this.assignmentEndDate = assignmentEndDate;
+    }
+
+    /** 프로젝트 종료 시 아직 끝나지 않은 실제 투입을 함께 끝낸다. */
+    public boolean endWithProject(LocalDate projectEndDate) {
+        if (assignmentStartDate != null && assignmentEndDate == null) {
+            assignmentEndDate = projectEndDate;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isBeforeAssignment() {
+        return assignmentStartDate == null && assignmentEndDate == null;
+    }
 }
