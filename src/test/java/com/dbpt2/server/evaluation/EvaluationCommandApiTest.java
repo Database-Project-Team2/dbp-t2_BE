@@ -130,7 +130,7 @@ class EvaluationCommandApiTest extends IntegrationTest {
         Map<String, Object> decimal = body(53, "PEER", TODAY);
         decimal.put("work_performance_score", 3.5);
         assertThat(postAs("/api/v1/evaluations", "demo06", decimal).status()).isEqualTo(400);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EVALUATION", Integer.class)).isEqualTo(34);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EVALUATION", Integer.class)).isEqualTo(45);
     }
 
     @Test

@@ -26,7 +26,7 @@ class EmployeeQueryApiTest extends IntegrationTest {
     void 경영진은_전체_직원과_현재_투입_수를_본다() {
         Response r = getAs("/api/v1/employees", "demo01").assertNoSecrets();
         assertThat(r.status()).isEqualTo(200);
-        assertThat(r.data()).hasSize(10);
+        assertThat(r.data()).hasSize(11);
         assertThat(r.data().get(0).get("employee_no").asText()).isEqualTo("20240001");
         assertThat(r.data().get(0).get("current_assignment_count").asLong()).isEqualTo(1);
         assertThat(r.data().get(2).get("current_assignment_count").asLong()).isZero();
@@ -44,11 +44,11 @@ class EmployeeQueryApiTest extends IntegrationTest {
     @Test
     void 이름_사번_직군_상태_투입_경력으로_검색한다() {
         assertThat(logins(getAs("/api/v1/employees?employee_name=김", "demo01"))).containsExactly("demo01");
-        assertThat(logins(getAs("/api/v1/employees?employee_no=2025", "demo01"))).hasSize(5);
-        assertThat(logins(getAs("/api/v1/employees?job_category=MARKETING", "demo01"))).containsExactly("demo08");
+        assertThat(logins(getAs("/api/v1/employees?employee_no=2025", "demo01"))).hasSize(6);
+        assertThat(logins(getAs("/api/v1/employees?job_category=MARKETING", "demo01"))).containsExactly("demo08", "demo11");
         assertThat(logins(getAs("/api/v1/employees?employment_status=ON_LEAVE", "demo01"))).containsExactly("demo09");
         assertThat(logins(getAs("/api/v1/employees?assigned=true", "demo01"))).containsExactly("demo01", "demo02", "demo08");
-        assertThat(logins(getAs("/api/v1/employees?assigned=false", "demo01"))).hasSize(7);
+        assertThat(logins(getAs("/api/v1/employees?assigned=false", "demo01"))).hasSize(8);
         assertThat(logins(getAs("/api/v1/employees?min_career_months=50", "demo01"))).containsExactly("demo09", "demo10");
         assertThat(logins(getAs("/api/v1/employees?job_category=DEVELOPER&min_career_months=40", "demo01"))).containsExactly("demo06", "demo07");
     }

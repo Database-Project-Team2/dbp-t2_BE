@@ -17,7 +17,7 @@ class EvaluationQueryApiTest extends IntegrationTest {
     @Test
     void 경영진은_전체_평가와_의견을_본다() {
         Response r = search("demo01", "").assertNoSecrets();
-        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(34);
+        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(45);
         JsonNode first = r.data().get(0);
         assertThat(first.has("work_performance_comment")).isTrue();
         assertThat(first.get("comments_visible").asBoolean()).isTrue();
@@ -25,9 +25,9 @@ class EvaluationQueryApiTest extends IntegrationTest {
 
     @Test
     void 일반_직원은_소속_프로젝트_점수만_보고_의견_필드는_응답에_없다() {
-        Response r = search("demo03", "").assertNoSecrets();
+        Response r = search("demo04", "").assertNoSecrets();
         assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(23);
-        assertThat(r.body()).doesNotContain("work_performance_comment", "communication_comment", "맡은 업무를 수행하고");
+        assertThat(r.body()).doesNotContain("work_performance_comment", "communication_comment", "회의 내용을 정리해");
         List<Integer> projects = new ArrayList<>();
         r.data().forEach(n -> projects.add(n.get("project_id").asInt()));
         assertThat(projects).containsOnly(1, 4);
@@ -36,8 +36,8 @@ class EvaluationQueryApiTest extends IntegrationTest {
     @Test
     void PM은_담당_프로젝트의_의견을_본다() {
         Response r = search("demo05", "");
-        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(20);
-        r.data().forEach(n -> assertThat(n.has("work_performance_comment")).isTrue());
+        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(31);
+        r.data().forEach(n -> assertThat(n.has("work_performance_comment")).as("PL인 P5는 의견 없음").isEqualTo(n.get("project_id").asInt() != 5));
     }
 
     @Test
@@ -52,10 +52,10 @@ class EvaluationQueryApiTest extends IntegrationTest {
 
     @Test
     void 검색_조건() {
-        assertThat(search("demo01", "&evaluation_type=CLIENT").json().at("/page/total_elements").asLong()).isEqualTo(7);
+        assertThat(search("demo01", "&evaluation_type=CLIENT").json().at("/page/total_elements").asLong()).isEqualTo(10);
         assertThat(search("demo01", "&project_id=2").json().at("/page/total_elements").asLong()).isEqualTo(11);
-        assertThat(search("demo01", "&target_employee_name=이서연").json().at("/page/total_elements").asLong()).isEqualTo(3);
-        assertThat(search("demo01", "&target_employee_id=2").json().at("/page/total_elements").asLong()).isEqualTo(3);
+        assertThat(search("demo01", "&target_employee_name=이서연").json().at("/page/total_elements").asLong()).isEqualTo(7);
+        assertThat(search("demo01", "&target_employee_id=2").json().at("/page/total_elements").asLong()).isEqualTo(7);
         assertThat(search("demo01", "&from=2026-07-01&to=2026-07-31").json().at("/page/total_elements").asLong()).isEqualTo(11);
         assertThat(search("demo01", "&from=2026-07-31&to=2026-07-01").status()).isEqualTo(400);
         assertThat(search("demo01", "&evaluation_type=BOSS").status()).isEqualTo(400);
@@ -83,10 +83,10 @@ class EvaluationQueryApiTest extends IntegrationTest {
         assertThat(manager.contentType()).startsWith("text/csv");
         assertThat(manager.contentDisposition()).contains("attachment").contains("filename*=UTF-8''");
         assertThat(manager.body()).startsWith("﻿").contains("업무수행 의견");
-        assertThat(manager.body().split("\r\n")).hasSize(35);
+        assertThat(manager.body().split("\r\n")).hasSize(46);
 
-        Response employee = getAs("/api/v1/evaluations/export.csv", "demo03");
-        assertThat(employee.body()).doesNotContain("업무수행 의견", "맡은 업무를 수행하고").doesNotContain("연구 데이터 관리 시스템");
+        Response employee = getAs("/api/v1/evaluations/export.csv", "demo04");
+        assertThat(employee.body()).doesNotContain("업무수행 의견", "회의 내용을 정리해").doesNotContain("연구 데이터 관리 시스템");
         assertThat(employee.body().split("\r\n")).hasSize(24);
         assertThat(getAs("/api/v1/evaluations/export.csv?project_id=2", "demo05").body()).contains("업무수행 의견");
         assertThat(getAs("/api/v1/evaluations/export.csv", null).status()).isEqualTo(401);
@@ -94,15 +94,18 @@ class EvaluationQueryApiTest extends IntegrationTest {
 
     @Test
     void 평가_가능한_프로젝트와_허용_유형() {
-        Response r = getAs("/api/v1/evaluations/eligible-projects", "demo03");
+        Response r = getAs("/api/v1/evaluations/eligible-projects", "demo04");
         assertThat(r.data()).hasSize(2);
         for (JsonNode p : r.data()) {
             assertThat(p.get("allowed_types").toString()).isEqualTo("[\"PEER\"]");
             assertThat(p.get("remaining_count").asLong()).isEqualTo(3);
         }
         Response pm = getAs("/api/v1/evaluations/eligible-projects", "demo05");
-        assertThat(pm.data().get(0).get("allowed_types").toString()).isEqualTo("[\"PEER\",\"PM\",\"CLIENT\"]");
-        assertThat(getAs("/api/v1/evaluations/eligible-projects", "demo02").data()).as("P3 진행 중, P1만").hasSize(1);
+        for (JsonNode p : pm.data()) {
+            String expected = p.get("project_id").asInt() == 5 ? "[\"PEER\"]" : "[\"PEER\",\"PM\",\"CLIENT\"]";
+            assertThat(p.get("allowed_types").toString()).as("P5는 PL").isEqualTo(expected);
+        }
+        assertThat(getAs("/api/v1/evaluations/eligible-projects", "demo02").data()).as("P3 진행 중, P1·P5만").hasSize(2);
     }
 
     @Test

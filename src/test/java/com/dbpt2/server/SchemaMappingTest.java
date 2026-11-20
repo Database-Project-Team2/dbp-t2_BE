@@ -31,11 +31,11 @@ class SchemaMappingTest extends IntegrationTest {
 
     @Test
     void 시드_데이터_건수가_스크립트와_같다() {
-        assertThat(employeeRepository.count()).isEqualTo(10);
+        assertThat(employeeRepository.count()).isEqualTo(11);
         assertThat(clientRepository.count()).isEqualTo(3);
-        assertThat(projectRepository.count()).isEqualTo(4);
-        assertThat(projectMemberRepository.count()).isEqualTo(20);
-        assertThat(evaluationRepository.count()).isEqualTo(34);
+        assertThat(projectRepository.count()).isEqualTo(5);
+        assertThat(projectMemberRepository.count()).isEqualTo(24);
+        assertThat(evaluationRepository.count()).isEqualTo(45);
     }
 
     @Test

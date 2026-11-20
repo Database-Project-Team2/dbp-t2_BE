@@ -22,7 +22,7 @@ class CareerApiTest extends IntegrationTest {
         assertThat(ids(self)).as("최수빈 본인: P3 투입 전 배정 제외").containsExactlyInAnyOrder(4, 18);
         assertThat(ids(getAs("/api/v1/employees/4/career", "demo01"))).containsExactlyInAnyOrder(4, 18, 60);
         Response mine = getAs("/api/v1/employees/3/career", "demo03");
-        assertThat(ids(mine)).containsExactlyInAnyOrder(3, 17);
+        assertThat(ids(mine)).containsExactlyInAnyOrder(3, 17, 21);
         assertThat(mine.data().get(0).at("/project/project_name").asText()).isNotBlank();
     }
 
@@ -48,7 +48,7 @@ class CareerApiTest extends IntegrationTest {
         assertThat(csv.status()).isEqualTo(200);
         assertThat(csv.contentType()).startsWith("text/csv");
         assertThat(csv.body()).startsWith("﻿\"사번\"").contains("유통 분석 대시보드").contains("20240003");
-        assertThat(csv.body().split("\r\n")).hasSize(3);
+        assertThat(csv.body().split("\r\n")).hasSize(4);
         assertThat(csv.contentDisposition()).contains("filename*=UTF-8''");
     }
 
@@ -57,7 +57,7 @@ class CareerApiTest extends IntegrationTest {
         assertThat(getAs("/api/v1/assignments/export.csv", "demo03").status()).isEqualTo(403);
         assertThat(getAs("/api/v1/assignments/export.csv", null).status()).isEqualTo(401);
         Response all = getAs("/api/v1/assignments/export.csv", "demo01");
-        assertThat(all.body().split("\r\n")).as("헤더 + 20건, page 없음").hasSize(21);
+        assertThat(all.body().split("\r\n")).as("헤더 + 24건, page 없음").hasSize(25);
         Response asOf = getAs("/api/v1/assignments/export.csv?as_of=2026-05-01", "demo01");
         assertThat(asOf.body().split("\r\n")).hasSize(6);
         assertThat(asOf.body()).contains("연구 데이터 관리 시스템").doesNotContain("유통 재고관리 시스템");
