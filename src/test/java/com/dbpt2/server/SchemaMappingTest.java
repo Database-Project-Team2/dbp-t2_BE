@@ -1,5 +1,6 @@
 package com.dbpt2.server;
 
+import com.dbpt2.server.support.IntegrationTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dbpt2.server.client.ClientRepository;
@@ -13,16 +14,14 @@ import com.dbpt2.server.member.ProjectMemberRepository;
 import com.dbpt2.server.project.ProjectRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * docker compose로 띄운 MySQL(시드 적재 상태)에 붙어 실행한다.
  * 컨텍스트가 뜨면 ddl-auto=validate를 통과한 것이고, 아래 검사로 시드가 엔티티로 읽히는지 확인한다.
  */
-@SpringBootTest
 @Transactional
-class SchemaMappingTest {
+class SchemaMappingTest extends IntegrationTest {
 
     @Autowired EmployeeRepository employeeRepository;
     @Autowired ClientRepository clientRepository;

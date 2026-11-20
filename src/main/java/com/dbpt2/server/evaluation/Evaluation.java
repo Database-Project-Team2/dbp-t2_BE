@@ -73,4 +73,21 @@ public class Evaluation {
 
     @Column(name = "communication_comment", nullable = false, columnDefinition = "TEXT")
     private String communicationComment;
+
+    /** 등록: 평가자·등록자는 서비스가 로그인 정보로 정해서 넘긴다. 고객평가의 evaluator는 null. */
+    public static Evaluation create(ProjectMember target, EvaluationType type, ProjectMember evaluator, ProjectMember registeredBy,
+                                    LocalDate evaluatedDate, int workPerformanceScore, String workPerformanceComment,
+                                    int communicationScore, String communicationComment) {
+        Evaluation e = new Evaluation();
+        e.target = target;
+        e.type = type;
+        e.evaluator = evaluator;
+        e.registeredBy = registeredBy;
+        e.evaluatedDate = evaluatedDate;
+        e.workPerformanceScore = workPerformanceScore;
+        e.workPerformanceComment = workPerformanceComment;
+        e.communicationScore = communicationScore;
+        e.communicationComment = communicationComment;
+        return e;
+    }
 }

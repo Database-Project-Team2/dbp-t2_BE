@@ -33,4 +33,17 @@ public class Client {
 
     @Column(name = "contact_phone_number", length = 30)
     private String contactPhoneNumber;
+
+    public static Client create(String name, String contactName, String contactEmail, String contactPhoneNumber) {
+        Client c = new Client();
+        c.update(name, contactName, contactEmail, contactPhoneNumber);
+        return c;
+    }
+
+    public void update(String name, String contactName, String contactEmail, String contactPhoneNumber) {
+        this.name = name;
+        this.contactName = contactName;
+        this.contactEmail = contactEmail;
+        this.contactPhoneNumber = contactPhoneNumber;
+    }
 }

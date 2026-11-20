@@ -10,15 +10,29 @@
 필요한 것: JDK 21, Docker Desktop
 
 ```bash
-cp .env.example .env          # 포트·비밀번호를 바꾸려면 여기서
+cp .env.example .env          # 포트·비밀번호, RESIDENT_NO_KEY·JWT_SECRET 채우기
 docker compose up -d          # MySQL 기동 + db/init 스키마·시드 자동 적재 (최초 1회)
 ./gradlew test                # 매핑 검증 테스트 (MySQL이 떠 있어야 함)
 ./gradlew bootRun             # http://localhost:8080/actuator/health
 ```
 
-DB를 시드 상태로 되돌리기: `docker compose down -v && docker compose up -d`
+DB를 시드 상태로 되돌리기: `scripts/reset-db.sh` (서버를 띄운 채로 테이블만 다시 만든다) 또는 `docker compose down -v && docker compose up -d`
+
+시드 비밀번호는 모두 `demo1234`. 주민번호 암호문은 `RESIDENT_NO_KEY`로 만들어져 있어 키가 다르면 마스킹 값이 `******-*******`로 보인다. 키를 바꾸면 `./gradlew seedSecrets`로 시드를 다시 만든다(db/CHANGELOG.md).
 
 > 로컬에 MySQL이 이미 3306을 쓰고 있으면 `.env`의 `DB_PORT`를 3307 등으로 바꾼다.
+
+## API·문서
+
+- 기본 경로 `/api/v1`, 명세는 프론트 저장소 `docs/API_SPEC.md`. Swagger: 로컬 `http://localhost:8080/swagger-ui.html`, 배포 `https://220-66-233-75.nip.io/dbp-api/swagger-ui.html` (로그인 응답의 `access_token`을 Authorize에 입력)
+- 테스트는 docker compose MySQL을 테스트마다 시드로 되돌린다(`IntegrationTest`). 기준일은 2026-11-20으로 고정.
+
+## 배포(BlueRack VM)
+
+- 위치 `~/dbp`, `deploy/docker-compose.prod.yml`(프로젝트 이름 `dbp-t2`: app 127.0.0.1:8081, MySQL 내부망). Caddy가 `https://220-66-233-75.nip.io/dbp-api/*`를 8081로 넘긴다.
+- `deploy/.env`에 DB 비밀번호와 `RESIDENT_NO_KEY`(시드 암호문을 만든 키), `JWT_SECRET`을 둔다.
+- 갱신: 소스를 `~/dbp`에 올린 뒤 `cd ~/dbp/deploy && sudo docker compose -f docker-compose.prod.yml up -d --build`
+- **시연용 DB 초기화(한 줄)**: `cd ~/dbp && sudo scripts/reset-db.sh dbp-t2-mysql-1`
 
 ## 구조
 
