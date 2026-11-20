@@ -59,4 +59,33 @@ class ProfileApiTest extends IntegrationTest {
         assertThat(patchAs("/api/v1/employees/me/password", null, Map.of("current_password", "demo1234", "new_password", "NewPass123!")).status())
                 .isEqualTo(401);
     }
+
+    @Test
+    void 기술_설명은_바이트_기준으로_제한한다() {
+        assertThat(patchAs("/api/v1/employees/me", "demo03", Map.of("skill_description", "가".repeat(22_000))).status()).isEqualTo(400);
+        assertThat(patchAs("/api/v1/employees/me", "demo03", Map.of("skill_description", "가".repeat(21_000))).status()).isEqualTo(200);
+        assertThat(postAs("/api/v1/employees", null, RegistrationApiTest.body(Map.of("skill_description", "가".repeat(22_000)))).status())
+                .isEqualTo(400);
+    }
+
+    @Test
+    void 프로필_수정과_비밀번호_변경이_동시에_와도_새_비밀번호가_유지된다() throws Exception {
+        token("demo03");
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        var password = pool.submit(() -> {
+            start.await();
+            return patchAs("/api/v1/employees/me/password", "demo03", Map.of("current_password", "demo1234", "new_password", "NewPass123!"));
+        });
+        var profile = pool.submit(() -> {
+            start.await();
+            return patchAs("/api/v1/employees/me", "demo03", Map.of("total_career_months", 50));
+        });
+        start.countDown();
+        assertThat(password.get().status()).isEqualTo(204);
+        assertThat(profile.get().status()).isEqualTo(200);
+        pool.shutdown();
+        assertThat(postAs("/api/v1/auth/login", null, Map.of("login_id", "demo03", "password", "NewPass123!")).status()).isEqualTo(200);
+        assertThat(jdbc.queryForObject("SELECT total_career_months FROM EMPLOYEE WHERE employee_id = 3", Integer.class)).isEqualTo(50);
+    }
 }

@@ -4,7 +4,9 @@ import static com.dbpt2.server.status.StatusRules.MEMBER_NOT_ENDED;
 import static com.dbpt2.server.status.StatusRules.PROJECT_NOT_CLOSED;
 
 import java.time.LocalDate;
+import jakarta.persistence.LockModeType;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,11 @@ import org.springframework.data.repository.query.Param;
 public interface EmployeeRepository extends JpaRepository<Employee, Integer>, JpaSpecificationExecutor<Employee> {
 
     Optional<Employee> findByLoginId(String loginId);
+
+    /** 본인 정보·비밀번호 변경은 직원 행을 잠가 동시 수정이 서로를 덮어쓰지 않게 한다. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Employee e WHERE e.id = :employeeId")
+    Optional<Employee> findByIdForUpdate(@Param("employeeId") int employeeId);
 
     boolean existsByLoginId(String loginId);
 

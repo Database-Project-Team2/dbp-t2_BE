@@ -23,7 +23,7 @@ public class ProfileService {
     public record PasswordRequest(String currentPassword, String newPassword) {}
 
     public EmployeeResponse updateProfile(AuthUser user, PatchBody patch) {
-        Employee me = employeeRepository.findById(user.employeeId()).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED));
+        Employee me = employeeRepository.findByIdForUpdate(user.employeeId()).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED));
         String education = null;
         if (patch.has("education")) {
             education = patch.text("education", false);
@@ -43,9 +43,7 @@ public class ProfileService {
         if (skillProvided) {
             String raw = patch.text("skill_description", true);
             skill = raw == null || raw.isBlank() ? null : raw;
-            if (skill != null && skill.length() > 65535) {
-                throw ApiException.invalid("skill_description", "기술 설명이 너무 길어요.");
-            }
+            EmployeeOptions.validateSkill(skill);
         }
         me.updateProfile(education, months, skill, skillProvided);
         return EmployeeResponse.of(me, cipher);
@@ -53,7 +51,7 @@ public class ProfileService {
 
     /** 현재 비밀번호가 틀리면 400(401은 토큰 문제로 쓰므로 로그인 화면 이동과 구분한다). */
     public void changePassword(AuthUser user, PasswordRequest r) {
-        Employee me = employeeRepository.findById(user.employeeId()).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED));
+        Employee me = employeeRepository.findByIdForUpdate(user.employeeId()).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED));
         if (r.currentPassword() == null || !passwordEncoder.matches(r.currentPassword(), me.getPasswordHash())) {
             throw ApiException.invalid("current_password", "현재 비밀번호가 맞지 않아요.");
         }

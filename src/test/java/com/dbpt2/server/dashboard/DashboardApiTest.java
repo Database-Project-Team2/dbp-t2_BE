@@ -103,4 +103,12 @@ class DashboardApiTest extends IntegrationTest {
     void 기준일_형식이_틀리면_400() {
         assertThat(getAs("/api/v1/dashboard?as_of=2026-13-01", "demo01").status()).isEqualTo(400);
     }
+
+    @Test
+    void 과거_기준일에도_당시_예정일이_지난_진행_프로젝트는_경과로_본다() {
+        JsonNode d = getAs("/api/v1/dashboard?as_of=2026-07-01", "demo01").data();
+        assertThat(texts(d.get("overdue_projects"), "project_name")).containsExactly("연구 데이터 관리 시스템");
+        assertThat(d.at("/ongoing_projects/0/overdue").asBoolean()).isTrue();
+        assertThat(getAs("/api/v1/dashboard?as_of=2026-06-30", "demo01").data().get("overdue_projects")).as("예정 종료일 당일은 경과 아님").isEmpty();
+    }
 }

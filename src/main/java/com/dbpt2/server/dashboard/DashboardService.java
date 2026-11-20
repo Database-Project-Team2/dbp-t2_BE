@@ -24,6 +24,7 @@ import com.dbpt2.server.project.Project;
 import com.dbpt2.server.project.ProjectRepository;
 import com.dbpt2.server.project.ProjectStats;
 import com.dbpt2.server.security.AuthUser;
+import com.dbpt2.server.status.ProjectStatus;
 import com.dbpt2.server.status.StatusRules;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -133,7 +134,8 @@ public class DashboardService {
     private static DashboardProject project(Project p, ProjectStats.Counts c, LocalDate asOf) {
         return new DashboardProject(p.getId(), p.getName(), p.getClient().getId(), p.getClient().getName(), p.getActualStartDate(),
                 p.getPlannedEndDate(), p.getActualEndDate(), StatusRules.projectStatus(p, asOf), c == null ? 0 : c.current(),
-                p.getActualEndDate() == null && p.getPlannedEndDate().isBefore(asOf));
+                // 기준일에 아직 진행 중인데 예정 종료일이 지났으면 경과(나중에 종료된 프로젝트도 당시에는 경과).
+                StatusRules.projectStatus(p, asOf) == ProjectStatus.IN_PROGRESS && p.getPlannedEndDate().isBefore(asOf));
     }
 
     private static CustomerEvaluationTask customerTask(Project p, ProjectStats.Counts c) {

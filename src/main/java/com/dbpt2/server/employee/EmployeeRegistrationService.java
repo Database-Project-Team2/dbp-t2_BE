@@ -91,9 +91,7 @@ public class EmployeeRegistrationService {
         if (r.hireDate().isAfter(today)) {
             throw ApiException.field(ErrorCode.BUSINESS_RULE_VIOLATION, "hire_date", "입사일은 오늘 이후일 수 없어요.");
         }
-        if (r.skillDescription() != null && r.skillDescription().length() > 65535) {
-            throw ApiException.invalid("skill_description", "기술 설명이 너무 길어요.");
-        }
+        EmployeeOptions.validateSkill(r.skillDescription() == null ? null : r.skillDescription().trim());
     }
 
     public static void validatePassword(String field, String password) {
