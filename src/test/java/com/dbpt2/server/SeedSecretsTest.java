@@ -1,5 +1,6 @@
 package com.dbpt2.server;
 
+import com.dbpt2.server.support.IntegrationTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dbpt2.server.crypto.ResidentNoCipher;
@@ -10,12 +11,10 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /** 시드의 비밀번호 해시·주민번호 암호문이 서버 설정과 맞는지 확인한다. */
-@SpringBootTest
-class SeedSecretsTest {
+class SeedSecretsTest extends IntegrationTest {
 
     @Autowired EmployeeRepository employeeRepository;
     @Autowired PasswordEncoder passwordEncoder;

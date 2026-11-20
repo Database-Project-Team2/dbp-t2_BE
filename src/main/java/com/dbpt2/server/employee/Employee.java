@@ -81,4 +81,45 @@ public class Employee {
     @Enumerated(EnumType.STRING)
     @Column(name = "system_role", nullable = false, columnDefinition = "VARCHAR(30)")
     private SystemRole systemRole;
+
+    /** 회원가입: 모든 가입자는 재직 중인 일반 직원. 값 검증은 서비스에서 끝낸 뒤 호출한다. */
+    public static Employee register(String employeeNo, String name, String residentNoEncrypted, String education,
+                                    LocalDate hireDate, int totalCareerMonths, String skillDescription,
+                                    JobCategory jobCategory, String loginId, String passwordHash) {
+        Employee e = new Employee();
+        e.employeeNo = employeeNo;
+        e.name = name;
+        e.residentNoEncrypted = residentNoEncrypted;
+        e.education = education;
+        e.employmentStatus = EmploymentStatus.ACTIVE;
+        e.hireDate = hireDate;
+        e.totalCareerMonths = totalCareerMonths;
+        e.skillDescription = skillDescription;
+        e.jobCategory = jobCategory;
+        e.loginId = loginId;
+        e.passwordHash = passwordHash;
+        e.systemRole = SystemRole.EMPLOYEE;
+        return e;
+    }
+
+    /** 본인 프로필 수정 — 학력·총 경력·기술 설명만 바꿀 수 있다. */
+    public void updateProfile(String education, Integer totalCareerMonths, String skillDescription, boolean skillProvided) {
+        if (education != null) {
+            this.education = education;
+        }
+        if (totalCareerMonths != null) {
+            this.totalCareerMonths = totalCareerMonths;
+        }
+        if (skillProvided) {
+            this.skillDescription = skillDescription;
+        }
+    }
+
+    public void changePassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public boolean isActive() {
+        return employmentStatus == EmploymentStatus.ACTIVE;
+    }
 }

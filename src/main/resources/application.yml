@@ -4,6 +4,14 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    time-zone: Asia/Seoul
+    deserialization:
+      # 명세에 없는 필드(system_role, employee_no 등)는 400으로 거부한다.
+      fail-on-unknown-properties: true
+    default-property-inclusion: always
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:employee_project_management}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME:dbp}
@@ -28,6 +36,15 @@ app:
   cors:
     allowed-origins: https://dbp-t2-fe.vercel.app,http://localhost:5173
   resident-no-key: ${RESIDENT_NO_KEY}
+  jwt:
+    secret: ${JWT_SECRET}
+    ttl-hours: 12
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
 
 management:
   endpoints:
@@ -37,4 +54,4 @@ management:
 
 logging:
   level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:info}
