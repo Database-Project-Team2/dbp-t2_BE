@@ -38,6 +38,10 @@ spring:
         jdbc:
           time_zone: Asia/Seoul
 
+server:
+  # 배포 서버는 Caddy가 /dbp-api 접두사를 떼고 넘기며 X-Forwarded-Prefix를 붙인다. Swagger 주소 계산에 반영한다.
+  forward-headers-strategy: framework
+
 app:
   cors:
     allowed-origins: https://dbp-t2-fe.vercel.app,http://localhost:5173

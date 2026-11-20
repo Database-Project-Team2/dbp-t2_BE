@@ -22,6 +22,18 @@ DB를 시드 상태로 되돌리기: `scripts/reset-db.sh` (서버를 띄운 채
 
 > 로컬에 MySQL이 이미 3306을 쓰고 있으면 `.env`의 `DB_PORT`를 3307 등으로 바꾼다.
 
+## API·문서
+
+- 기본 경로 `/api/v1`, 명세는 프론트 저장소 `docs/API_SPEC.md`. Swagger: 로컬 `http://localhost:8080/swagger-ui.html`, 배포 `https://220-66-233-75.nip.io/dbp-api/swagger-ui.html` (로그인 응답의 `access_token`을 Authorize에 입력)
+- 테스트는 docker compose MySQL을 테스트마다 시드로 되돌린다(`IntegrationTest`). 기준일은 2026-11-20으로 고정.
+
+## 배포(BlueRack VM)
+
+- 위치 `~/dbp`, `deploy/docker-compose.prod.yml`(프로젝트 이름 `dbp-t2`: app 127.0.0.1:8081, MySQL 내부망). Caddy가 `https://220-66-233-75.nip.io/dbp-api/*`를 8081로 넘긴다.
+- `deploy/.env`에 DB 비밀번호와 `RESIDENT_NO_KEY`(시드 암호문을 만든 키), `JWT_SECRET`을 둔다.
+- 갱신: 소스를 `~/dbp`에 올린 뒤 `cd ~/dbp/deploy && sudo docker compose -f docker-compose.prod.yml up -d --build`
+- **시연용 DB 초기화(한 줄)**: `cd ~/dbp && sudo scripts/reset-db.sh dbp-t2-mysql-1`
+
 ## 구조
 
 ```
