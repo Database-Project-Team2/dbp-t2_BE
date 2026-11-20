@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 평가 등록과 고객평가 단계 기록(명세 5장). 평가자·등록자는 토큰의 직원으로 서버가 정한다.
- * 고객평가 대상당 1건은 UNIQUE로 막히지 않으므로(evaluator NULL) 대상 구성원 행을 먼저 잠그고 검사한다.
+ * 고객평가 대상당 1건은 UNIQUE로 막히지 않으므로(evaluator NULL) 프로젝트 행을 먼저 잠그고 검사한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,12 +44,18 @@ public class EvaluationCommandService {
     private final AccessPolicy accessPolicy;
     private final Clock clock;
 
-    // READ_COMMITTED: 잠금을 기다린 뒤의 중복 검사가 먼저 커밋된 평가를 보도록 한다.
+    /*
+     * 같은 프로젝트의 평가 등록·고객평가 단계 기록은 프로젝트 행 잠금으로 직렬화한다.
+     * 대상 구성원 행을 잠그면 서로를 평가하는 두 요청이 FK 공유 잠금과 엇갈려 교착 상태가 된다.
+     * READ_COMMITTED: 잠금을 기다린 뒤의 중복 검사가 먼저 커밋된 평가를 보도록 한다.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CreatedEvaluation create(AuthUser user, CreateEvaluationRequest r) {
-        ProjectMember target = memberRepository.findByIdForUpdate(r.targetMemberId())
+        int projectId = memberRepository.findProjectId(r.targetMemberId())
                 .orElseThrow(() -> ApiException.field(ErrorCode.NOT_FOUND, "target_member_id", "평가 대상을 찾을 수 없어요."));
-        Project project = target.getProject();
+        Project project = projectRepository.findByIdForUpdate(projectId).orElseThrow(ApiException::notFound);
+        ProjectMember target = memberRepository.findById(r.targetMemberId())
+                .orElseThrow(() -> ApiException.field(ErrorCode.NOT_FOUND, "target_member_id", "평가 대상을 찾을 수 없어요."));
         if (!accessPolicy.isMemberOf(user, project.getId())) {
             throw ApiException.field(ErrorCode.NOT_FOUND, "target_member_id", "평가 대상을 찾을 수 없어요.");
         }

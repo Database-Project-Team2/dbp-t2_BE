@@ -72,7 +72,11 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, In
             + " AND m.role = com.dbpt2.server.member.ProjectRole.PM")
     List<Integer> findPmProjectIds(@Param("employeeId") int employeeId);
 
-    /** 평가 동시 등록 차단: 대상 구성원 행을 잠근다(SELECT ... FOR UPDATE). */
+    /** 구성원의 프로젝트 ID만 읽는다(엔티티를 영속성 컨텍스트에 올리지 않아, 잠금 후 다시 읽을 때 최신 값을 본다). */
+    @Query("SELECT m.project.id FROM ProjectMember m WHERE m.id = :memberId")
+    Optional<Integer> findProjectId(@Param("memberId") int memberId);
+
+    /** 구성원 변경(기간 수정·삭제) 시 프로젝트 잠금 다음에 구성원 행을 잠그고 최신 상태로 읽는다(SELECT ... FOR UPDATE). */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM ProjectMember m WHERE m.id = :memberId")
     Optional<ProjectMember> findByIdForUpdate(@Param("memberId") int memberId);

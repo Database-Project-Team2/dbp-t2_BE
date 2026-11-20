@@ -176,4 +176,63 @@ class MemberCommandApiTest extends IntegrationTest {
         assertThat(deleteAs("/api/v1/members/15", "demo01").status()).as("P3 투입 전 임현우").isEqualTo(204);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EMPLOYEE WHERE employee_id = 9", Integer.class)).isEqualTo(1);
     }
+
+    @Test
+    void 삭제와_투입_시작이_동시에_와도_실제_투입_이력은_지워지지_않는다() throws Exception {
+        token("demo01");
+        for (int round = 0; round < 5; round++) {
+            jdbc.update("DELETE FROM PROJECT_MEMBER WHERE project_id = ? AND employee_id = 4", projectId);
+            int memberId = add(4, "TESTER", null, null).data().get("member_id").asInt();
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            CountDownLatch start = new CountDownLatch(1);
+            Future<Response> assign = pool.submit(() -> {
+                start.await();
+                return patchAs("/api/v1/members/" + memberId + "/assignment", "demo01", Map.of("assignment_start_date", TODAY));
+            });
+            Future<Response> remove = pool.submit(() -> {
+                start.await();
+                return deleteAs("/api/v1/members/" + memberId, "demo01");
+            });
+            start.countDown();
+            int assignStatus = assign.get().status();
+            int removeStatus = remove.get().status();
+            pool.shutdown();
+            Integer remaining = jdbc.queryForObject("SELECT COUNT(*) FROM PROJECT_MEMBER WHERE member_id = ?", Integer.class, memberId);
+            if (remaining == 1) {
+                // 투입이 먼저: 삭제는 422, 시작일이 남아 있어야 한다.
+                assertThat(assignStatus).isEqualTo(200);
+                assertThat(removeStatus).isEqualTo(422);
+                assertThat(jdbc.queryForObject("SELECT assignment_start_date FROM PROJECT_MEMBER WHERE member_id = ?", String.class, memberId))
+                        .isEqualTo(TODAY);
+            } else {
+                // 삭제가 먼저: 기간 수정은 대상 없음 404.
+                assertThat(removeStatus).isEqualTo(204);
+                assertThat(assignStatus).isEqualTo(404);
+            }
+        }
+    }
+
+    @Test
+    void 기간_수정과_종료가_동시에_와도_기록된_종료일을_덮어쓰지_않는다() throws Exception {
+        token("demo01");
+        int memberId = add(3, "PM", "2026-11-03", null).data().get("member_id").asInt();
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch start = new CountDownLatch(1);
+        Future<Response> end = pool.submit(() -> {
+            start.await();
+            return patchAs("/api/v1/members/" + memberId + "/assignment", "demo01", Map.of("assignment_end_date", "2026-11-10"));
+        });
+        Future<Response> restart = pool.submit(() -> {
+            start.await();
+            return patchAs("/api/v1/members/" + memberId + "/assignment", "demo01", Map.of("assignment_start_date", "2026-11-04"));
+        });
+        start.countDown();
+        List<Integer> statuses = List.of(end.get().status(), restart.get().status());
+        pool.shutdown();
+        String endDate = jdbc.queryForObject("SELECT assignment_end_date FROM PROJECT_MEMBER WHERE member_id = ?", String.class, memberId);
+        assertThat(endDate).isEqualTo("2026-11-10");
+        // 종료가 먼저면 시작일 변경은 409, 아니면 둘 다 200이고 종료일은 유지된다.
+        assertThat(statuses.get(0)).isEqualTo(200);
+        assertThat(statuses.get(1)).isIn(200, 409);
+    }
 }

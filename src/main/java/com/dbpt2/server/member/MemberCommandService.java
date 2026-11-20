@@ -65,8 +65,8 @@ public class MemberCommandService {
 
     public MemberResponse changeAssignment(AuthUser user, int memberId, PatchBody patch) {
         accessPolicy.requireManagement(user);
-        ProjectMember member = memberRepository.findById(memberId).orElseThrow(ApiException::notFound);
-        Project project = lockOpenProject(member.getProject().getId());
+        Project project = lockOpenProject(projectOf(memberId));
+        ProjectMember member = lockMember(memberId);
         if (member.getAssignmentEndDate() != null) {
             throw new ApiException(ErrorCode.ASSIGNMENT_ENDED, "투입이 종료된 구성원은 재투입하거나 기간을 변경할 수 없어요.");
         }
@@ -83,8 +83,8 @@ public class MemberCommandService {
 
     public void remove(AuthUser user, int memberId) {
         accessPolicy.requireManagement(user);
-        ProjectMember member = memberRepository.findById(memberId).orElseThrow(ApiException::notFound);
-        lockOpenProject(member.getProject().getId());
+        lockOpenProject(projectOf(memberId));
+        ProjectMember member = lockMember(memberId);
         if (!member.isBeforeAssignment()) {
             throw ApiException.rule("투입 전인 구성원만 삭제할 수 있어요. 실제 투입 이력은 유지해요.");
         }
@@ -92,6 +92,18 @@ public class MemberCommandService {
             throw new ApiException(ErrorCode.DATA_CONFLICT, "평가 기록이 있는 구성원은 삭제할 수 없어요.");
         }
         memberRepository.delete(member);
+    }
+
+    /**
+     * 잠금 순서는 프로젝트 → 구성원. 구성원 상태는 프로젝트 잠금을 얻은 뒤 잠금 읽기로 다시 읽어,
+     * 동시에 들어온 삭제·기간 수정이 오래된 상태로 판단하지 않게 한다.
+     */
+    private int projectOf(int memberId) {
+        return memberRepository.findProjectId(memberId).orElseThrow(ApiException::notFound);
+    }
+
+    private ProjectMember lockMember(int memberId) {
+        return memberRepository.findByIdForUpdate(memberId).orElseThrow(ApiException::notFound);
     }
 
     private Project lockOpenProject(int projectId) {

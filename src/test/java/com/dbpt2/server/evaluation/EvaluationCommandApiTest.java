@@ -212,4 +212,28 @@ class EvaluationCommandApiTest extends IntegrationTest {
         assertThat(workflow("demo05", 4, "SEND", TODAY).status()).isEqualTo(400);
         assertThat(workflow("demo05", 999, "REQUEST", TODAY).status()).isEqualTo(404);
     }
+
+    @Test
+    void 서로를_동시에_동료평가해도_교착_없이_둘_다_등록된다() throws Exception {
+        closedFixture();
+        token("demo06");
+        token("demo07");
+        for (int round = 0; round < 3; round++) {
+            jdbc.update("DELETE FROM EVALUATION WHERE target_member_id IN (52, 53)");
+            ExecutorService pool = Executors.newFixedThreadPool(2);
+            CountDownLatch start = new CountDownLatch(1);
+            Future<Response> a = pool.submit(() -> {
+                start.await();
+                return evaluate("demo06", 53, "PEER");
+            });
+            Future<Response> b = pool.submit(() -> {
+                start.await();
+                return evaluate("demo07", 52, "PEER");
+            });
+            start.countDown();
+            assertThat(a.get().status()).as(a.get().body()).isEqualTo(201);
+            assertThat(b.get().status()).as(b.get().body()).isEqualTo(201);
+            pool.shutdown();
+        }
+    }
 }
