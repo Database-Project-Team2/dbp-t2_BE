@@ -67,6 +67,11 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, In
             + " WHERE m.employee.id IN :employeeIds AND " + MEMBER_ASSIGNED + " GROUP BY m.employee.id")
     List<Object[]> countAssignmentsByEmployee(@Param("employeeIds") Collection<Integer> employeeIds, @Param("asOf") LocalDate asOf);
 
+    /** 직원이 PM인 프로젝트 ID(의견 공개 범위 판정). */
+    @Query("SELECT m.project.id FROM ProjectMember m WHERE m.employee.id = :employeeId"
+            + " AND m.role = com.dbpt2.server.member.ProjectRole.PM")
+    List<Integer> findPmProjectIds(@Param("employeeId") int employeeId);
+
     /** 평가 동시 등록 차단: 대상 구성원 행을 잠근다(SELECT ... FOR UPDATE). */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM ProjectMember m WHERE m.id = :memberId")

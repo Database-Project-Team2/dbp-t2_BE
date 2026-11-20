@@ -10,6 +10,8 @@ spring:
     deserialization:
       # 명세에 없는 필드(system_role, employee_no 등)는 400으로 거부한다.
       fail-on-unknown-properties: true
+      # 점수 3.5 같은 소수를 정수로 잘라 받지 않는다.
+      accept-float-as-int: false
     default-property-inclusion: always
 
   mvc:
