@@ -23,7 +23,7 @@ class SeedSecretsTest extends IntegrationTest {
     @Test
     void 시드_비밀번호는_모두_demo1234() {
         List<Employee> employees = employeeRepository.findAll();
-        assertThat(employees).hasSize(10)
+        assertThat(employees).hasSize(11)
                 .allSatisfy(e -> assertThat(passwordEncoder.matches("demo1234", e.getPasswordHash())).isTrue());
     }
 

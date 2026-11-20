@@ -15,10 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  */
 public final class SeedSecrets {
 
-    /** 프론트 residentNumber.ts 검사를 통과하는 가상 번호. employee_id 1~10 순서. */
+    /** 프론트 residentNumber.ts 검사를 통과하는 가상 번호. employee_id 1~11 순서. */
     static final List<String> RESIDENT_NUMBERS = List.of(
             "900315-1000001", "920722-2000002", "910104-1000003", "950918-2000004", "880530-1000005",
-            "980211-2000006", "970806-1000007", "000125-4000008", "930610-1000009", "961130-2000010");
+            "980211-2000006", "970806-1000007", "000125-4000008", "930610-1000009", "961130-2000010", "991107-2000011");
 
     static final String DEMO_PASSWORD = "demo1234";
 
@@ -54,7 +54,7 @@ public final class SeedSecrets {
         }
         encrypted.appendTail(out);
         if (index != RESIDENT_NUMBERS.size()) {
-            throw new IllegalStateException("암호문 개수가 " + index + "개입니다. 10개여야 합니다.");
+            throw new IllegalStateException("암호문 개수가 " + index + "개입니다. " + RESIDENT_NUMBERS.size() + "개여야 합니다.");
         }
         Files.writeString(seed, out.toString(), StandardCharsets.UTF_8);
         System.out.println("주민번호 암호문 " + index + "개를 다시 만들었습니다.");

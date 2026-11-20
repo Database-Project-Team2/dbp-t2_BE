@@ -47,7 +47,7 @@ class RegistrationApiTest extends IntegrationTest {
         assertThat(response.data().get("is_pm").asBoolean()).isFalse();
         assertThat(register(Map.of("login_id", "second.one")).data().at("/employee/employee_no").asText()).isEqualTo("20260002");
         assertThat(register(Map.of("login_id", "third.one", "hire_date", "2025-12-31")).data().at("/employee/employee_no").asText())
-                .isEqualTo("20250006");
+                .isEqualTo("20250007");
     }
 
     @Test
@@ -82,7 +82,7 @@ class RegistrationApiTest extends IntegrationTest {
         assertThat(role.status()).isEqualTo(400);
         assertThat(role.json().at("/error/field_errors/0/field").asText()).isEqualTo("system_role");
         assertThat(register(Map.of("employee_no", "20260099")).status()).isEqualTo(400);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EMPLOYEE", Integer.class)).isEqualTo(10);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EMPLOYEE", Integer.class)).isEqualTo(11);
     }
 
     @Test
@@ -103,7 +103,7 @@ class RegistrationApiTest extends IntegrationTest {
         Map<String, Object> missing = body(Map.of());
         missing.remove("education");
         assertThat(postAs("/api/v1/employees", null, missing).status()).isEqualTo(400);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EMPLOYEE", Integer.class)).isEqualTo(10);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EMPLOYEE", Integer.class)).isEqualTo(11);
     }
 
     @Test

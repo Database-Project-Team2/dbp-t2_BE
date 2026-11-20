@@ -82,9 +82,9 @@ class AuthApiTest extends IntegrationTest {
 
     @Test
     void 내_정보는_토큰으로_조회한다() {
-        Response response = getAs("/api/v1/auth/me", "demo03").assertNoSecrets();
+        Response response = getAs("/api/v1/auth/me", "demo04").assertNoSecrets();
         assertThat(response.status()).isEqualTo(200);
-        assertThat(response.data().at("/employee/login_id").asText()).isEqualTo("demo03");
+        assertThat(response.data().at("/employee/login_id").asText()).isEqualTo("demo04");
         assertThat(response.data().at("/employee/system_role").asText()).isEqualTo("EMPLOYEE");
         assertThat(response.data().get("is_pm").asBoolean()).isFalse();
         assertThat(response.data().get("server_today").asText()).isEqualTo(TODAY);

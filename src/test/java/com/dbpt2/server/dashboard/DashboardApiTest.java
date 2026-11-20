@@ -23,7 +23,7 @@ class DashboardApiTest extends IntegrationTest {
         JsonNode d = r.data();
         assertThat(d.get("view").asText()).isEqualTo("MANAGEMENT");
         assertThat(d.at("/metrics/ongoing_project_count").asLong()).isEqualTo(1);
-        assertThat(d.at("/metrics/total_project_count").asLong()).isEqualTo(4);
+        assertThat(d.at("/metrics/total_project_count").asLong()).isEqualTo(5);
         assertThat(d.at("/metrics/employees_without_projects").asLong()).isEqualTo(5);
         assertThat(d.at("/metrics/customer_evaluation_pending").asLong()).isEqualTo(2);
         assertThat(texts(d.get("ongoing_projects"), "project_name")).containsExactly("교육 콘텐츠 관리 시스템");

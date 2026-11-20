@@ -27,9 +27,9 @@ class AssignmentQueryApiTest extends IntegrationTest {
     }
 
     @Test
-    void 전체_이력은_투입_전_포함_20건() {
+    void 전체_이력은_투입_전_포함_24건() {
         Response r = search("").assertNoSecrets();
-        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(20);
+        assertThat(r.json().at("/page/total_elements").asLong()).isEqualTo(24);
         assertThat(r.data().get(0).at("/project/project_name").asText()).isNotBlank();
         assertThat(r.data().get(0).at("/employee/employee_no").asText()).isNotBlank();
     }
@@ -52,11 +52,11 @@ class AssignmentQueryApiTest extends IntegrationTest {
 
     @Test
     void 직원_프로젝트_역할_진행_중_조건() {
-        assertThat(ids(search("&project_id=3"))).containsExactlyInAnyOrder(11, 12, 13, 14, 15);
-        assertThat(ids(search("&project_role=PM"))).containsExactlyInAnyOrder(1, 6, 11, 16);
+        assertThat(ids(search("&project_id=3"))).containsExactlyInAnyOrder(11, 12, 13, 14, 15, 24);
+        assertThat(ids(search("&project_role=PM"))).containsExactlyInAnyOrder(1, 6, 11, 16, 21);
         assertThat(ids(search("&employee_name=장예린"))).containsExactlyInAnyOrder(5, 9, 14);
-        assertThat(ids(search("&employee_id=3"))).containsExactlyInAnyOrder(3, 17);
-        assertThat(ids(search("&ongoing_projects_only=true"))).containsExactlyInAnyOrder(11, 12, 13, 14, 15);
+        assertThat(ids(search("&employee_id=3"))).containsExactlyInAnyOrder(3, 17, 21);
+        assertThat(ids(search("&ongoing_projects_only=true"))).containsExactlyInAnyOrder(11, 12, 13, 14, 15, 24);
         assertThat(ids(search("&ongoing_projects_only=true&as_of=2026-05-01"))).containsExactlyInAnyOrder(6, 7, 8, 9, 10);
         assertThat(search("&project_role=CEO").status()).isEqualTo(400);
     }
@@ -66,6 +66,6 @@ class AssignmentQueryApiTest extends IntegrationTest {
         Response r = getAs("/api/v1/assignments?size=5", "demo01");
         assertThat(r.data()).hasSize(5);
         assertThat(r.json().at("/page/has_next").asBoolean()).isTrue();
-        assertThat(r.json().at("/page/total_pages").asInt()).isEqualTo(4);
+        assertThat(r.json().at("/page/total_pages").asInt()).isEqualTo(5);
     }
 }
