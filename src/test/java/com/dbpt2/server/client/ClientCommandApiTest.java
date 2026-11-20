@@ -54,4 +54,30 @@ class ClientCommandApiTest extends IntegrationTest {
         assertThat(patchAs("/api/v1/clients/1", "demo01", nullName).status()).isEqualTo(400);
         assertThat(patchAs("/api/v1/clients/999", "demo01", Map.of("contact_name", "x")).status()).isEqualTo(404);
     }
+
+    @Test
+    void 서로_다른_필드를_동시에_수정해도_두_변경이_모두_남는다() throws Exception {
+        token("demo01");
+        for (int round = 0; round < 3; round++) {
+            String name = "담당" + round;
+            String mail = "c" + round + "@example.com";
+            java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            var a = pool.submit(() -> {
+                start.await();
+                return patchAs("/api/v1/clients/1", "demo01", Map.of("contact_name", name));
+            });
+            var b = pool.submit(() -> {
+                start.await();
+                return patchAs("/api/v1/clients/1", "demo01", Map.of("contact_email", mail));
+            });
+            start.countDown();
+            assertThat(a.get().status()).isEqualTo(200);
+            assertThat(b.get().status()).isEqualTo(200);
+            pool.shutdown();
+            Map<String, Object> row = jdbc.queryForMap("SELECT contact_name, contact_email FROM CLIENT WHERE client_id = 1");
+            assertThat(row.get("contact_name")).isEqualTo(name);
+            assertThat(row.get("contact_email")).isEqualTo(mail);
+        }
+    }
 }

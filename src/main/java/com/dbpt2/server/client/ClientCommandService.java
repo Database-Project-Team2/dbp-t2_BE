@@ -31,7 +31,7 @@ public class ClientCommandService {
 
     public void update(AuthUser user, int clientId, PatchBody patch) {
         accessPolicy.requireManagement(user);
-        Client c = clientRepository.findById(clientId).orElseThrow(ApiException::notFound);
+        Client c = clientRepository.findByIdForUpdate(clientId).orElseThrow(ApiException::notFound);
         c.update(
                 patch.has("client_name") ? name(patch.text("client_name", false)) : c.getName(),
                 patch.has("contact_name") ? contactName(patch.text("contact_name", false)) : c.getContactName(),
