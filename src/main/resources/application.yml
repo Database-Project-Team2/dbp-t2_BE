@@ -12,6 +12,10 @@ spring:
       fail-on-unknown-properties: true
     default-property-inclusion: always
 
+  mvc:
+    format:
+      date: iso
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:employee_project_management}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME:dbp}
